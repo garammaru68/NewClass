@@ -85,14 +85,14 @@ void main()
 
 	// 아케이드 7번 문제
 	vector<int> test;
-	test.push_back(8);
 	test.push_back(1);
-	test.push_back(3);
 	test.push_back(4);
-	test.push_back(7);
+	test.push_back(2);
+	test.push_back(6);
+	test.push_back(3);
 	test.push_back(9);
-	test.erase(test.begin());
-	cout << test[0] << endl;
+	//int test[] = { 1, 2, 6, 3, 9 }
+
 	almostIncreasingSequence(test);
 }
 
@@ -106,22 +106,43 @@ bool checkPalindrome(std::string inputString)
 	else return false;
 }
 
+//bool almostIncreasingSequence(std::vector<int> sequence)
+//{
+//	bool Check;
+//	int count = 0;
+//	std::vector<int>::iterator viSequence;
+//
+//	for (viSequence = sequence.begin(); viSequence != sequence.end(); viSequence++)
+//	{
+//		if (viSequence > sequence.begin() + 1)
+//		{
+//			sequence.erase();
+//			count++;
+//		}
+//		if (count >= 2) Check = false;
+//		else Check = true;
+//	}
+//
+//	return Check;
+//}
+
 bool almostIncreasingSequence(std::vector<int> sequence)
 {
 	bool Check;
 	int count = 0;
-	std::vector<int>::iterator viSequence;
+	int length = sequence.size();
+	std::vector<int>::iterator viSequence = sequence.begin();
 
-	for (viSequence = sequence.begin(); viSequence != sequence.end(); viSequence++)
+	for (int i = 0; i < length - 1; i++)
 	{
-		if (viSequence > sequence.begin() + 1)
+		if (sequence[i] > sequence[i + 1])
 		{
-			sequence.erase(sequence.begin());
+			sequence.erase(viSequence + 1);
 			count++;
+		
 		}
 		if (count >= 2) Check = false;
 		else Check = true;
 	}
-
 	return Check;
 }
