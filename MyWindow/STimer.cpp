@@ -1,54 +1,57 @@
 #include "STimer.h"
 
-int		g_iFPS;
-float	g_fSecPerFrame;
-float	g_fAccumulation;
+float	g_fGamTimer = 0.0f;
+float	g_fSecondPerFrame = 0.0f;
+
+STimer::STimer()
+{
+
+}
+STimer::~STimer()
+{
+
+}
 
 bool STimer::Init()
 {
-	m_dwBeforeTick = timeGetTime();
-	ZeroMemory(m_csBuffer, sizeof(TCHAR)* MAX_PATH);
+	m_fGameTimer = 0.0f;
+	m_fSecondPerFrame = 0.0f;
+	m_iFPS = 0;
+	m_fBeforeTime = timeGetTime();
 	return true;
 };
 bool STimer::Frame()
 {
-	DWORD dwCurrentTick = timeGetTime();
-	DWORD dwElapseTick = dwCurrentTick - m_dwBeforeTick;
+	float fCurrentTime = timeGetTime();
+	m_fSecondPerFrame = (fCurrentTime - m_fBeforeTime) / 1000.0f;
+	m_fGameTimer += m_fSecondPerFrame;
+	m_fBeforeTime = fCurrentTime;
 
-	g_fSecPerFrame = m_fSecondPerFrame = dwElapseTick / 1000.0f;
-	g_fAccumulation = m_fAccumulation += m_fSecondPerFrame;
-	m_fFrameTime += m_fSecondPerFrame;
-
-	if (m_fFrameTime > 1.0f)
-	{
-		g_iFPS = m_iFPS = m_dwFrameCnt;
-		m_dwFrameCnt = 0;
-		m_fFrameTime -= 1.0f;
-	}
-
-	m_dwFrameCnt++;
-	m_dwBeforeTick = dwCurrentTick;
+	g_fSecondPerFrame = m_fSecondPerFrame;
+	g_fGameTimer = m_fGameTimer;
 	return true;
 }
+
 bool STimer::Render()
 {
-	_stprintf_s(m_csBuffer, L"Timer:[%10.4f] FPS:[%d] %10.4f\n",
-		m_fAccumulation, m_iFPS, m_fSecondPerFrame);
+	static float fTimer = 0.0f;
+	fTimer += m_fSecondPerFrame;
+	if (fTimer >= 1.0f)
+	{
+		ZeroMemory(m_szBuffer, sizeof(WCHAR) * 256);
+		_stprintf_s(m_szBuffer,
+			L"게임시간=%f, spf(%10.4f) fps(%d)\n,",
+			m_fGameTimer,
+			m_fSecondPerFrame,
+			m_iFPS);
+		OutputDebugString(m_szBuffer);
+		fTimer -= 1.0f;
+		m_iFPS = 0;
+	}
+	m_iFPS++;
 	return true;
 };
 bool STimer::Release()
 {
 	return true;
-}
-
-STimer::STimer()
-{
-	m_iFPS = 0;
-	m_dwFrameCnt = 0;
-	m_fSecondPerFrame = 0.0f;
-	m_fAccumulation = 0.0f;
-	m_fFrameTime = 0.0f;
-}
-STimer::~STimer()
-{
 }

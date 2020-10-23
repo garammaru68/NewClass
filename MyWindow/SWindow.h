@@ -4,20 +4,12 @@
 class SWindow
 {
 public:
-	HWND		m_hWnd;
 	HINSTANCE	m_hInstance;
-	RECT		m_rtWindow;
-	RECT		m_rtClient;
+	HWND		m_hWnd;
+	MSG			m_msg;
 public:
-	void	CenterWindow();
-	bool	SetWindow(HINSTANCE hInstance, const TCHAR* pTitleName = L"Sample",
-		int iWidth = 800, int iheight = 600);
-	bool	Run();
-	bool	Release();
-	virtual bool	GameRun() { return true; };
-	virtual void	MsgEvent(MSG msg) {};
-	virtual bool	GameInit() { return true; };
-	virtual bool	GameRelease() { return true; };
+	bool	SetWindow(HINSTANCE hInstance);
+	bool	MsgProcess();
 public:
 	SWindow();
 	virtual ~SWindow();

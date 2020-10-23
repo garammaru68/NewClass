@@ -1,17 +1,15 @@
 #pragma once
 #include "SStd.h"
 
-class STimer
+class STimer : public SSingleton<STimer>
 {
 public:
-	TCHAR	m_csBuffer[MAX_PATH];
-	int		m_iFPS;
+	float	m_fGameTimer;;
 	float	m_fSecondPerFrame;
-	float	m_fAccumulation;
+	int		m_iFPS;
 
-	DWORD	m_dwBeforeTick;
-	float	m_fFrameTime;
-	DWORD	m_dwFrameCnt;
+	WCHAR	m_szBuffer[256] = { 0, };
+	float	m_fBeforeTime;
 public:
 	bool	Init();
 	bool	Frame();
@@ -21,4 +19,4 @@ public:
 	STimer();
 	virtual ~STimer();
 };
-
+#define g_Timer STimer::GetInstance()

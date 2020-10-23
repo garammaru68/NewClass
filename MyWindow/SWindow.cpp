@@ -1,130 +1,69 @@
 #include "SWindow.h"
-SWindow* g_Window = NULL;
-
-RECT		g_rtClient;
-HWND		g_hWnd;
-
-LRESULT CALLBACK WndProc(HWND hWnd, UINT msg,
+HWND		g_hWnd = 0;
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 	WPARAM wParam, LPARAM lParam)
 {
-	switch (msg)
+	switch (message)
 	{
-		case WM_SIZE:
-		{
-			if (wParam != SIZE_MINIMIZED && g_Window != NULL)
-			{
-				UINT width = LOWORD(lParam);
-				UINT height = HIWORD(lParam);
-				GetWindowRect(hWnd, &g_Window->m_rtWindow);
-				GetClientRect(hWnd, &g_Window->m_rtClient);
-				g_rtClient = g_Window->m_rtClient;
-			}
-		}break;
-		case WM_PAINT:
-		{
-			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hWnd, &ps);
-			EndPaint(hWnd, &ps);
-		}break;
-		case WM_DESTROY:
-		{
-			PostQuitMessage(0);
-		}break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-	return DefWindowProc(hWnd, msg, wParam, lParam);
+	return 0;
 }
-void SWindow::CenterWindow()
+bool SWindow::MsgProcess()
 {
-	int iScreenWidth = GetSystemMetrics(SM_CXFULLSCREEN);
-	int iScreenHeight = GetSystemMetrics(SM_CYFULLSCREEN);
-	int x = (iScreenWidth - (m_rtWindow.right - m_rtWindow.left)) / 2;
-	int y = (iScreenHeight - (m_rtWindow.bottom - m_rtWindow.top)) / 2;
-	MoveWindow(m_hWnd, x, y, m_rtWindow.right, m_rtWindow.bottom, true);
+	while (PeekMessage(&m_msg, NULL, 0, 0, PM_REMOVE))
+	{
+		TranslateMessage(&m_msg);
+		DispatchMessage(&m_msg);
+		if (m_msg.message == WM_QUIT)
+		{
+			return false;
+		}
+	}
+	return true;
 }
-bool SWindow::SetWindow(HINSTANCE hInstance, const TCHAR* pTitleName,
-	int iWidth, int iHeight)
+bool SWindow::SetWindow(HINSTANCE hInstance)
 {
 	m_hInstance = hInstance;
 
 	WNDCLASSEX wc;
+	ZeroMemory(&wc, sizeof(wc));
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 	wc.lpfnWndProc = WndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
 	wc.hInstance = m_hInstance;
-	wc.hIcon = LoadIcon(NULL, IDI_QUESTION);
-	wc.hCursor = LoadCursor(NULL, IDC_IBEAM);
-	wc.hbrBackground = (HBRUSH)GetStockObject(GRAY_BRUSH);
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = L"KGCA";
-	wc.hIconSm = LoadIcon(NULL, IDI_QUESTION);
-	ATOM ret = RegisterClassEx(&wc);
-	if (ret == false)
+	wc.lpszClassName = L"KGCAWINDOW";
+	if (RegisterClassEx(&wc) == 0)
 	{
 		return false;
 	}
-#ifdef _DEBUG
+
 	m_hWnd = CreateWindowEx(
 		WS_EX_APPWINDOW,
-		L"KGCA",
-		pTitleName,
-		WS_POPUPWINDOW,
-		0, 0, iWidth, iHeight, 
-		NULL, NULL, m_hInstance, NULL);
-	if (m_hWnd == NULL) return false;
-	g_hWnd = m_hWnd;
-#else
-	m_hWnd = CreateWindowEx(
-		WS_EX_TOPMOST,
-		L"KGCA",
-		pTitleName,
-		WS_POPUPWINDOW,
-		0, 0, iWidth, iHeight,
-		NULL, NULL, m_hInstance, NULL);
-	if (m_hWnd == NULL) return false;
-#endif
-	GetClientRect(m_hWnd, &m_rtWindow);
-	
-	CenterWindow();
+		L"KGCAWINDOW",
+		L"MyGame2",
+		WS_OVERLAPPEDWINDOW,
+		300, 300, 800, 600,
+		nullptr, nullptr,
+		m_hInstance, nullptr);
 
-	ShowWindow(m_hWnd, SW_SHOW);
-	return true;
-};
-bool SWindow::Run()
-{
-	GameInit();
-	MSG msg;
-	ZeroMemory(&msg, sizeof(msg));
-
-	while (true)
+	if (m_hWnd == NULL)
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-			if (msg.message == WM_QUIT)
-			{
-				break;
-			}
-			MsgEvent(msg);
-		}
-		else
-		{
-			GameRun();
-		}
+		return false;
 	}
-	GameRelease();
-	return true;
-};
-bool SWindow::Release()
-{
+	g_hWnd = m_hWnd;
+	ShowWindow(m_hWnd, SW_SHOW);
+
 	return true;
 }
-
 SWindow::SWindow()
 {
-	g_Window = this;
+	ZeroMemory(&m_msg, sizeof(MSG));
 }
 SWindow::~SWindow()
 {
